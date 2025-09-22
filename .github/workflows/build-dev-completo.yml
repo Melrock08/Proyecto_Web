@@ -54,7 +54,7 @@ jobs:
 
   deploy-onpremise:
     name: Deploy on MicroK8s On-Premise
-    runs-on: [self-hosted, linux, dev]
+    runs-on: [self-hosted, Linux, X64]
     needs: build-and-publish
 
     steps:
