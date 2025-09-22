@@ -10,6 +10,7 @@ public class ActividadMapper {
         dto.setIdActividad(actividad.getIdActividad());
         dto.setNombre(actividad.getNombre());
         dto.setDescripcion(actividad.getDescripcion());
+        dto.setTipo(actividad.getTipo());
         dto.setIdRol(actividad.getRol() != null ? actividad.getRol().getIdRol() : null);
         dto.setIdProceso(actividad.getProceso() != null ? actividad.getProceso().getIdProceso() : null);
         return dto;
@@ -20,7 +21,9 @@ public class ActividadMapper {
         actividad.setIdActividad(dto.getIdActividad());
         actividad.setNombre(dto.getNombre());
         actividad.setDescripcion(dto.getDescripcion());
-        // rol y proceso se setean en el service
+        actividad.setTipo(dto.getTipo());
+        // Rol y Proceso se asignan en el service a partir de sus IDs
         return actividad;
     }
 }
+

@@ -9,6 +9,8 @@ public class ProcesoMapper {
         ProcesoDTO dto = new ProcesoDTO();
         dto.setIdProceso(proceso.getIdProceso());
         dto.setNombre(proceso.getNombre());
+        dto.setDescripcion(proceso.getDescripcion());
+        dto.setCategoria(proceso.getCategoria());
         dto.setEstado(proceso.getEstado());
         dto.setIdEmpresa(proceso.getEmpresa() != null ? proceso.getEmpresa().getIdEmpresa() : null);
         return dto;
@@ -18,8 +20,10 @@ public class ProcesoMapper {
         Proceso proceso = new Proceso();
         proceso.setIdProceso(dto.getIdProceso());
         proceso.setNombre(dto.getNombre());
+        proceso.setDescripcion(dto.getDescripcion());
+        proceso.setCategoria(dto.getCategoria());
         proceso.setEstado(dto.getEstado());
-        // La empresa se setea aparte
+        // La empresa se setea en el Service
         return proceso;
     }
 }

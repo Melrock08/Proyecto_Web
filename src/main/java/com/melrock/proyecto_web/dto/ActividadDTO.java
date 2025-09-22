@@ -7,6 +7,7 @@ public class ActividadDTO {
     private Long idActividad;
     private String nombre;
     private String descripcion;
+    private String tipo;
     private Long idRol;
     private Long idProceso;
 }

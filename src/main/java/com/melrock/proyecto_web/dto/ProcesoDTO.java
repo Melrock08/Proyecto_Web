@@ -6,6 +6,8 @@ import lombok.Data;
 public class ProcesoDTO {
     private Long idProceso;
     private String nombre;
+    private String descripcion;
+    private String categoria;
     private String estado; // Borrador, Activo, Inactivo
     private Long idEmpresa;
 }
