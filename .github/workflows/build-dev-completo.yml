@@ -60,15 +60,9 @@ jobs:
     steps:
     - name: Checkout repo
       uses: actions/checkout@v3
-    
-    - name: Configure kubeconfig
-      run: |
-        mkdir -p $HOME/.kube
-        microk8s config > $HOME/.kube/config
-        chmod 600 $HOME/.kube/confi
 
     - name: Apply Kubernetes deployment
-      run: microk8s kubectl apply -f k8s.yaml
+      run: kubectl apply -f k8s.yaml
 
     - name: Restart Kubernetes deployment
       run: microk8s kubectl rollout restart deployment/proyecto_web -n proyecto_web-dev
