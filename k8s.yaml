@@ -21,7 +21,7 @@ spec:
     spec:
       imagePullSecrets:
         - name: ghcr-secret
-        
+
       containers:
         - name: proyecto-web
           image: ghcr.io/melrock08/proyecto_web:latest
@@ -29,7 +29,7 @@ spec:
             - containerPort: 8080   # Spring Boot usa 8080
           env:
             - name: SPRING_DATASOURCE_URL
-              value: jdbc:mysql://<IP_VM_MYSQL>:3306/<NOMBRE_BD>?useSSL=false&serverTimezone=UTC
+              value: jdbc:mysql://10.43.103.168:3306/procesos_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
             - name: SPRING_DATASOURCE_USERNAME
               valueFrom:
                 secretKeyRef:
