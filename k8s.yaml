@@ -14,11 +14,14 @@ spec:
   selector:
     matchLabels:
       app: proyecto-web
-  template:
+  template: 
     metadata:
       labels:
         app: proyecto-web
     spec:
+      imagePullSecrets:
+        - name: ghcr-secret
+        
       containers:
         - name: proyecto-web
           image: ghcr.io/melrock08/proyecto_web:latest
