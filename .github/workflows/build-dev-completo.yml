@@ -65,4 +65,5 @@ jobs:
       run: sudo microk8s kubectl apply -f k8s.yaml
 
     - name: Restart Kubernetes deployment
-      run: sudo microk8s kubectl rollout restart deployment/proyecto_web -n proyecto_web-dev
+      run: sudomicrok8s kubectl rollout restart deployment/proyecto-web -n proyectoweb-dev
+
