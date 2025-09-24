@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
         - name: proyecto-web
-          image: ghcr.io/<TU_GH_USER>/proyecto_web:latest   # Imagen pública en GHCR
+          image: ghcr.io/melrock08/proyecto_web:latest
           ports:
             - containerPort: 8080   # Spring Boot usa 8080
           env:
