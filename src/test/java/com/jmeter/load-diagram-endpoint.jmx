@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.5">
+  <hashTree>
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="Plan de Carga - Diagrama de Proceso">
+      <stringProp name="TestPlan.comments">Prueba de rendimiento del endpoint GET /api/processes/{id}/diagram</stringProp>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <boolProp name="TestPlan.tearDown_on_shutdown">true</boolProp>
+      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
+    </TestPlan>
+    <hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Prueba de Carga de Diagrama">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <intProp name="ThreadGroup.num_threads">50</intProp> 
+        <intProp name="ThreadGroup.ramp_time">10</intProp> 
+        <stringProp name="ThreadGroup.num_iterations">1</stringProp> 
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+      </ThreadGroup>
+      <hashTree>
+        <ConfigTestElement guiclass="HttpDefaultsGui" testclass="ConfigTestElement" testname="Valores por Defecto HTTP">
+          <intProp name="HTTPSampler.port">8080</intProp>
+          <stringProp name="HTTPSampler.protocol">http</stringProp>
+          <stringProp name="HTTPSampler.domain">localhost</stringProp>
+          <boolProp name="HTTPSampler.monitor">false</boolProp>
+        </ConfigTestElement>
+        <hashTree/>
+        
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /api/processes/1/diagram">
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <stringProp name="HTTPSampler.path">/api/processes/1/diagram</stringProp> 
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Aserción: Código 200">
+            <boolProp name="Assertion.custom_message">false</boolProp>
+            <stringProp name="Assertion.test_field">response_code</stringProp>
+            <stringProp name="Assertion.test_type">equals</stringProp>
+            <collectionProp name="Assertion.test_strings">
+              <stringProp name="84953">200</stringProp>
+            </collectionProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Aserción: Contiene activities">
+            <boolProp name="Assertion.custom_message">false</boolProp>
+            <stringProp name="Assertion.test_field">response_data</stringProp>
+            <stringProp name="Assertion.test_type">contains</stringProp>
+            <collectionProp name="Assertion.test_strings">
+              <stringProp name="1636254045">"activities"</stringProp>
+            </collectionProp>
+          </ResponseAssertion>
+          <hashTree/>
+        </hashTree>
+        
+        <ResultCollector guiclass="SummaryReport" testclass="ResultCollector" testname="Summary Report (Métricas de Latencia)">
+          <boolProp name="ResultCollector.error_logging">false</boolProp>
+          <objProp>
+            <name>saveConfig</name>
+            <value class="SampleSaveConfiguration">
+                </value>
+          </objProp>
+        </ResultCollector>
+        <hashTree/>
+      </hashTree>
+    </hashTree>
+  </hashTree>
+</jmeterTestPlan>

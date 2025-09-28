@@ -110,6 +110,41 @@
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>
+
+            <plugin>
+            <groupId>com.lazerycode.jmeter</groupId>
+            <artifactId>jmeter-maven-plugin</artifactId>
+            <version>3.5.0</version> <executions>
+                <execution>
+                    <id>jmeter-tests</id>
+                    <goals>
+                        <goal>jmeter</goal>
+                    </goals>
+                </execution>
+                <execution>
+                    <id>jmeter-check</id>
+                    <goals>
+                        <goal>results</goal>
+                    </goals>
+                    <configuration>
+                        <suppressJMeterOutput>false</suppressJMeterOutput>
+                        <properties>
+                            <jmeter.save.saveservice.output_format>xml</jmeter.save.saveservice.output_format>
+                            <jmeter.save.saveservice.response_data>false</jmeter.save.saveservice.response_data>
+                        </properties>
+                        <jmeterGlobalCheck>
+                            <failThreshold>1.0</failThreshold> 
+                        </jmeterGlobalCheck>
+                    </configuration>
+                </execution>
+            </executions>
+            <configuration>
+                <testFilesDirectory>${project.basedir}/src/test/jmeter</testFilesDirectory> 
+                <resultsDirectory>${project.build.directory}/jmeter/results</resultsDirectory> 
+                <generateReports>true</generateReports> 
+                <skipTests>false</skipTests>
+            </configuration>
+            </plugin>
         </plugins>
     </build>
 
