@@ -1,38 +1,46 @@
 package com.melrock.proyecto_web.controller;
 
+import com.melrock.proyecto_web.dto.GatewayDTO;
 import com.melrock.proyecto_web.model.Gateway;
 import com.melrock.proyecto_web.service.GatewayService;
+import jakarta.validation.Valid;
+import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/gateways")
 public class GatewayController {
 
     private final GatewayService gatewayService;
+    private final ModelMapper modelMapper;
 
-    public GatewayController(GatewayService gatewayService) {
+    public GatewayController(GatewayService gatewayService, ModelMapper modelMapper) {
         this.gatewayService = gatewayService;
+        this.modelMapper = modelMapper;
     }
 
-    // Crear gateway (HU-14)
+    // Crear gateway
     @PostMapping
-    public ResponseEntity<Gateway> crearGateway(@RequestBody Gateway gateway) {
+    public ResponseEntity<GatewayDTO> crearGateway(@Valid @RequestBody GatewayDTO gatewayDTO) {
+        Gateway gateway = modelMapper.map(gatewayDTO, Gateway.class);
         Gateway nuevo = gatewayService.crearGateway(gateway);
-        return ResponseEntity.ok(nuevo);
+        return ResponseEntity.ok(modelMapper.map(nuevo, GatewayDTO.class));
     }
 
-    // Editar gateway (HU-15)
+    // Editar gateway
     @PutMapping("/{id}")
-    public ResponseEntity<Gateway> editarGateway(@PathVariable Long id, @RequestBody Gateway gateway) {
+    public ResponseEntity<GatewayDTO> editarGateway(@PathVariable Long id,
+                                                    @Valid @RequestBody GatewayDTO gatewayDTO) {
+        Gateway gateway = modelMapper.map(gatewayDTO, Gateway.class);
         Gateway actualizado = gatewayService.editarGateway(id, gateway);
-        return ResponseEntity.ok(actualizado);
+        return ResponseEntity.ok(modelMapper.map(actualizado, GatewayDTO.class));
     }
 
-    // Eliminar gateway (HU-16)
+    // Eliminar gateway
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminarGateway(@PathVariable Long id) {
         gatewayService.eliminarGateway(id);
@@ -41,13 +49,19 @@ public class GatewayController {
 
     // Listar todos
     @GetMapping
-    public ResponseEntity<List<Gateway>> listarGateways() {
-        return ResponseEntity.ok(gatewayService.listarGateways());
+    public ResponseEntity<List<GatewayDTO>> listarGateways() {
+        List<GatewayDTO> gateways = gatewayService.listarGateways()
+                .stream()
+                .map(g -> modelMapper.map(g, GatewayDTO.class))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(gateways);
     }
 
     // Buscar por ID
     @GetMapping("/{id}")
-    public ResponseEntity<Optional<Gateway>> buscarPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(gatewayService.buscarPorId(id));
+    public ResponseEntity<GatewayDTO> buscarPorId(@PathVariable Long id) {
+        return gatewayService.buscarPorId(id)
+                .map(g -> ResponseEntity.ok(modelMapper.map(g, GatewayDTO.class)))
+                .orElse(ResponseEntity.notFound().build());
     }
 }

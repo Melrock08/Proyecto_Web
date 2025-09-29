@@ -7,7 +7,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "empresa")
-@Data                   // Lombok: incluye getters, setters, toString, equals y hashCode
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

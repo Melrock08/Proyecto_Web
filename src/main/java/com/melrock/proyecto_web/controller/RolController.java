@@ -2,9 +2,11 @@ package com.melrock.proyecto_web.controller;
 
 import com.melrock.proyecto_web.model.Rol;
 import com.melrock.proyecto_web.service.RolService;
+import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Optional;
 
@@ -13,21 +15,23 @@ import java.util.Optional;
 public class RolController {
 
     private final RolService rolService;
+    private final ModelMapper modelMapper;
 
-    public RolController(RolService rolService) {
+    public RolController(RolService rolService, ModelMapper modelMapper) {
         this.rolService = rolService;
+        this.modelMapper = modelMapper;
     }
 
     // Crear rol (HU-17)
     @PostMapping
-    public ResponseEntity<Rol> crearRol(@RequestBody Rol rol) {
+    public ResponseEntity<Rol> crearRol(@Valid @RequestBody Rol rol) {
         Rol nuevo = rolService.crearRol(rol);
         return ResponseEntity.ok(nuevo);
     }
 
     // Editar rol (HU-18)
     @PutMapping("/{id}")
-    public ResponseEntity<Rol> editarRol(@PathVariable Long id, @RequestBody Rol rol) {
+    public ResponseEntity<Rol> editarRol(@PathVariable Long id, @Valid @RequestBody Rol rol) {
         Rol actualizado = rolService.editarRol(id, rol);
         return ResponseEntity.ok(actualizado);
     }
@@ -51,4 +55,3 @@ public class RolController {
         return ResponseEntity.ok(rolService.buscarPorId(id));
     }
 }
-

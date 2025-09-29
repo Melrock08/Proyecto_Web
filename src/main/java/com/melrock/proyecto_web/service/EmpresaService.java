@@ -57,4 +57,16 @@ public class EmpresaService {
     public void eliminarEmpresa(Long id) {
         empresaRepository.deleteById(id);
     }
+
+    // Actualizar empresa
+    public Empresa actualizarEmpresa(Long id, Empresa empresaDetails) {
+    Empresa empresa = empresaRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Empresa no encontrada con id: " + id));
+
+    empresa.setNombre(empresaDetails.getNombre());
+    empresa.setNit(empresaDetails.getNit());
+    empresa.setCorreoContacto(empresaDetails.getCorreoContacto());
+
+    return empresaRepository.save(empresa);
+}
 }

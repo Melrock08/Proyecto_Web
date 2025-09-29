@@ -6,9 +6,9 @@ import lombok.*;
 @Entity
 @Table(name = "actividad")
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class Actividad {
 
     @Id

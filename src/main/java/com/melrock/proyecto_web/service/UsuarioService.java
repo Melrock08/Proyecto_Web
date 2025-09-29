@@ -53,4 +53,17 @@ public class UsuarioService {
     public void eliminarUsuario(Long id) {
         usuarioRepository.deleteById(id);
     }
+
+      // Actualizar usuario
+    public Usuario ActualizarUsuario(Long id, Usuario usuarioDetails) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con id: " + id));
+
+        usuario.setNombre(usuarioDetails.getNombre());
+        usuario.setCorreo(usuarioDetails.getCorreo());
+        usuario.setContraseña(usuarioDetails.getContraseña()); // luego podemos encriptar con BCrypt
+        usuario.setRolSistema(usuarioDetails.getRolSistema());
+
+        return usuarioRepository.save(usuario);
+    }
 }
