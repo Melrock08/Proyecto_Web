@@ -1,67 +1,57 @@
 package com.melrock.proyecto_web.controller;
 
 import com.melrock.proyecto_web.dto.ActividadDTO;
-import com.melrock.proyecto_web.model.Actividad;
 import com.melrock.proyecto_web.service.ActividadService;
 import jakarta.validation.Valid;
-import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/actividades")
 public class ActividadController {
 
     private final ActividadService actividadService;
-    private final ModelMapper modelMapper;
 
-    public ActividadController(ActividadService actividadService, ModelMapper modelMapper) {
+    public ActividadController(ActividadService actividadService) {
         this.actividadService = actividadService;
-        this.modelMapper = modelMapper;
     }
 
-    // Crear actividad (HU-08)
+    // Crear actividad
     @PostMapping
     public ResponseEntity<ActividadDTO> crearActividad(@Valid @RequestBody ActividadDTO actividadDTO) {
-        Actividad actividad = modelMapper.map(actividadDTO, Actividad.class);
-        Actividad nueva = actividadService.crearActividad(actividad);
-        return ResponseEntity.ok(modelMapper.map(nueva, ActividadDTO.class));
+        ActividadDTO nueva = actividadService.crearActividad(actividadDTO);
+        return ResponseEntity.ok(nueva);
     }
 
-    // Editar actividad (HU-09)
+    // Editar actividad
     @PutMapping("/{id}")
     public ResponseEntity<ActividadDTO> editarActividad(@PathVariable Long id, @Valid @RequestBody ActividadDTO actividadDTO) {
-        Actividad actividad = modelMapper.map(actividadDTO, Actividad.class);
-        Actividad actualizada = actividadService.editarActividad(id, actividad);
-        return ResponseEntity.ok(modelMapper.map(actualizada, ActividadDTO.class));
+        ActividadDTO actualizada = actividadService.editarActividad(id, actividadDTO);
+        return ResponseEntity.ok(actualizada);
     }
 
-    // Eliminar actividad (HU-10)
+    // Eliminar actividad
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminarActividad(@PathVariable Long id) {
         actividadService.eliminarActividad(id);
         return ResponseEntity.noContent().build();
     }
 
-    // Listar actividades
+    // Listar todas las actividades
     @GetMapping
     public ResponseEntity<List<ActividadDTO>> listarActividades() {
-        List<ActividadDTO> actividades = actividadService.listarActividades()
-                .stream()
-                .map(act -> modelMapper.map(act, ActividadDTO.class))
-                .collect(Collectors.toList());
+        List<ActividadDTO> actividades = actividadService.listarActividades();
         return ResponseEntity.ok(actividades);
     }
 
-    // Buscar por ID
+    // Buscar actividad por ID
     @GetMapping("/{id}")
     public ResponseEntity<ActividadDTO> buscarPorId(@PathVariable Long id) {
-        Optional<Actividad> actividadOpt = actividadService.buscarPorId(id);
-        return actividadOpt.map(act -> ResponseEntity.ok(modelMapper.map(act, ActividadDTO.class)))
+        Optional<ActividadDTO> actividadOpt = actividadService.buscarPorId(id);
+        return actividadOpt.map(ResponseEntity::ok)
                            .orElse(ResponseEntity.notFound().build());
     }
 }

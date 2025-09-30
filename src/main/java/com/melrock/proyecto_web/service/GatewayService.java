@@ -1,68 +1,94 @@
 package com.melrock.proyecto_web.service;
 
-import com.melrock.proyecto_web.repository.GatewayRepository;
-import org.springframework.stereotype.Service;
+import com.melrock.proyecto_web.dto.GatewayDTO;
 import com.melrock.proyecto_web.model.Gateway;
+import com.melrock.proyecto_web.model.Proceso;
+import com.melrock.proyecto_web.repository.GatewayRepository;
+import com.melrock.proyecto_web.repository.ProcesoRepository;
+import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class GatewayService {
 
     private final GatewayRepository gatewayRepository;
-
-    public GatewayService(GatewayRepository gatewayRepository) {
-        this.gatewayRepository = gatewayRepository;
-    }
-
+    private final ProcesoRepository procesoRepository;
+    private final ModelMapper modelMapper;
+    
     // Crear gateway
-     public Gateway crearGateway(Gateway gateway) {
-        if (gateway.getTipo() == null || gateway.getTipo().isBlank()) {
-            throw new RuntimeException("El gateway debe tener un tipo definido");
-        }
+    public GatewayDTO crearGateway(GatewayDTO dto) {
+        Gateway gateway = new Gateway();
 
-        String tipo = gateway.getTipo().toUpperCase();
+        // Validar tipo
+        String tipo = dto.getTipo().toUpperCase();
         if (!tipo.equals("EXCLUSIVO") && !tipo.equals("PARALELO") && !tipo.equals("INCLUSIVO")) {
             throw new RuntimeException("Tipo de gateway inválido (válidos: Exclusivo, Paralelo, Inclusivo)");
         }
-
         gateway.setTipo(tipo);
-        return gatewayRepository.save(gateway);
+
+        // Vincular proceso
+        Proceso proceso = procesoRepository.findById(dto.getIdProceso())
+                .orElseThrow(() -> new RuntimeException("Proceso no encontrado"));
+        gateway.setProceso(proceso);
+
+        Gateway guardado = gatewayRepository.save(gateway);
+        return convertirADTO(guardado);
     }
 
-    // Editar gateway (actualizar tipo o condiciones)
-    public Gateway editarGateway(Long id, Gateway datosActualizados) {
-        Optional<Gateway> existenteOpt = gatewayRepository.findById(id);
+    // Editar gateway
+    public GatewayDTO editarGateway(Long id, GatewayDTO dto) {
+        Gateway existente = gatewayRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Gateway no encontrado"));
 
-        if (existenteOpt.isEmpty()) {
-            throw new RuntimeException("Gateway no encontrado");
+        String tipo = dto.getTipo().toUpperCase();
+        if (!tipo.equals("EXCLUSIVO") && !tipo.equals("PARALELO") && !tipo.equals("INCLUSIVO")) {
+            throw new RuntimeException("Tipo de gateway inválido (válidos: Exclusivo, Paralelo, Inclusivo)");
+        }
+        existente.setTipo(tipo);
+
+        if (dto.getIdProceso() != null) {
+            Proceso proceso = procesoRepository.findById(dto.getIdProceso())
+                    .orElseThrow(() -> new RuntimeException("Proceso no encontrado"));
+            existente.setProceso(proceso);
         }
 
-        Gateway existente = existenteOpt.get();
-        existente.setTipo(datosActualizados.getTipo().toUpperCase());
-
-        return gatewayRepository.save(existente);
+        Gateway actualizado = gatewayRepository.save(existente);
+        return convertirADTO(actualizado);
     }
 
-    // Listar todos los gateways
-    public List<Gateway> listarGateways() {
-        return gatewayRepository.findAll();
+    // Listar todos
+    public List<GatewayDTO> listarGateways() {
+        return gatewayRepository.findAll()
+                .stream()
+                .map(this::convertirADTO)
+                .collect(Collectors.toList());
     }
 
-    // Buscar gateway por id
-    public Optional<Gateway> buscarPorId(Long id) {
-        return gatewayRepository.findById(id);
+    // Buscar por id
+    public Optional<GatewayDTO> buscarPorId(Long id) {
+        return gatewayRepository.findById(id).map(this::convertirADTO);
     }
 
     // Eliminar gateway
     public void eliminarGateway(Long id) {
-        Optional<Gateway> existenteOpt = gatewayRepository.findById(id);
-
-        if (existenteOpt.isEmpty()) {
+        if (!gatewayRepository.existsById(id)) {
             throw new RuntimeException("Gateway no encontrado");
         }
-
         gatewayRepository.deleteById(id);
+    }
+
+    // ===== Método auxiliar =====
+    private GatewayDTO convertirADTO(Gateway gateway) {
+        GatewayDTO dto = modelMapper.map(gateway, GatewayDTO.class);
+        if (gateway.getProceso() != null) {
+            dto.setIdProceso(gateway.getProceso().getIdProceso());
+        }
+        return dto;
     }
 }

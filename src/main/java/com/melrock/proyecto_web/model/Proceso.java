@@ -6,7 +6,8 @@ import java.util.List;
 
 @Entity
 @Table(name = "proceso")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -30,7 +31,7 @@ public class Proceso {
 
     // Relaciones
     @ManyToOne
-    @JoinColumn(name = "id_empresa", nullable = false)
+    @JoinColumn(name = "idEmpresa", nullable = false)
     private Empresa empresa;
 
     @OneToMany(mappedBy = "proceso", cascade = CascadeType.ALL, orphanRemoval = true)

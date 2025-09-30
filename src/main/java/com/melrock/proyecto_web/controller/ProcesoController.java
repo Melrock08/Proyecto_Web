@@ -1,72 +1,63 @@
 package com.melrock.proyecto_web.controller;
 
-import com.melrock.proyecto_web.model.Proceso;
-import com.melrock.proyecto_web.dto.EmpresaDTO;
+import com.melrock.proyecto_web.dto.ProcesoDTO;
 import com.melrock.proyecto_web.service.ProcesoService;
-import org.modelmapper.ModelMapper;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.validation.Valid;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/procesos")
 public class ProcesoController {
 
     private final ProcesoService procesoService;
-    private final ModelMapper modelMapper;
 
-    public ProcesoController(ProcesoService procesoService, ModelMapper modelMapper) {
+    public ProcesoController(ProcesoService procesoService) {
         this.procesoService = procesoService;
-        this.modelMapper = modelMapper;
     }
 
     // Crear proceso (HU-04)
     @PostMapping
-    public ResponseEntity<Proceso> crearProceso(@Valid @RequestBody Proceso proceso) {
-        Proceso nuevo = procesoService.crearProceso(proceso);
+    public ResponseEntity<ProcesoDTO> crearProceso(@Valid @RequestBody ProcesoDTO dto) {
+        ProcesoDTO nuevo = procesoService.crearProceso(dto);
         return ResponseEntity.ok(nuevo);
     }
 
     // Editar proceso (HU-05)
     @PutMapping("/{id}")
-    public ResponseEntity<Proceso> editarProceso(@PathVariable Long id, @Valid @RequestBody Proceso proceso) {
-        Proceso actualizado = procesoService.editarProceso(id, proceso);
+    public ResponseEntity<ProcesoDTO> editarProceso(@PathVariable Long id, @Valid @RequestBody ProcesoDTO dto) {
+        ProcesoDTO actualizado = procesoService.editarProceso(id, dto);
         return ResponseEntity.ok(actualizado);
     }
 
     // Desactivar proceso (HU-06)
     @DeleteMapping("/{id}")
-    public ResponseEntity<Proceso> desactivarProceso(@PathVariable Long id) {
-        Proceso inactivo = procesoService.desactivarProceso(id);
+    public ResponseEntity<ProcesoDTO> desactivarProceso(@PathVariable Long id) {
+        ProcesoDTO inactivo = procesoService.desactivarProceso(id);
         return ResponseEntity.ok(inactivo);
     }
 
-    // Consultar todos (HU-07)
+    // Consultar todos los procesos (HU-07)
     @GetMapping
-    public ResponseEntity<List<Proceso>> listarProcesos() {
-        return ResponseEntity.ok(procesoService.listarProcesos());
+    public ResponseEntity<List<ProcesoDTO>> listarProcesos() {
+        List<ProcesoDTO> lista = procesoService.listarProcesos();
+        return ResponseEntity.ok(lista);
     }
 
-    // Consultar por empresa (HU-07)
+    // Consultar procesos por empresa (HU-07)
     @GetMapping("/empresa/{idEmpresa}")
-    public ResponseEntity<List<EmpresaDTO>> listarPorEmpresa(@PathVariable Long idEmpresa) {
-        List<Proceso> procesos = procesoService.listarPorEmpresa(idEmpresa);
-
-        // Mapeamos solo la Empresa asociada de cada proceso
-        List<EmpresaDTO> empresas = procesos.stream()
-                .map(p -> modelMapper.map(p.getEmpresa(), EmpresaDTO.class))
-                .collect(Collectors.toList());
-
-        return ResponseEntity.ok(empresas);
+    public ResponseEntity<List<ProcesoDTO>> listarPorEmpresa(@PathVariable Long idEmpresa) {
+        List<ProcesoDTO> lista = procesoService.listarPorEmpresa(idEmpresa);
+        return ResponseEntity.ok(lista);
     }
 
-    // Consultar por ID (HU-07)
+    // Consultar proceso por ID (HU-07)
     @GetMapping("/{id}")
-    public ResponseEntity<Optional<Proceso>> buscarPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(procesoService.buscarPorId(id));
+    public ResponseEntity<ProcesoDTO> buscarPorId(@PathVariable Long id) {
+        return procesoService.buscarPorId(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 }

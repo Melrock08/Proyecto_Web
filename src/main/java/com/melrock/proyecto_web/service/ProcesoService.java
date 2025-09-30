@@ -1,70 +1,97 @@
 package com.melrock.proyecto_web.service;
 
-import com.melrock.proyecto_web.repository.ProcesoRepository;
-import org.springframework.stereotype.Service;
+import com.melrock.proyecto_web.dto.ProcesoDTO;
+import com.melrock.proyecto_web.model.Empresa;
 import com.melrock.proyecto_web.model.Proceso;
+import com.melrock.proyecto_web.repository.EmpresaRepository;
+import com.melrock.proyecto_web.repository.ProcesoRepository;
+import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class ProcesoService {
 
     private final ProcesoRepository procesoRepository;
+    private final EmpresaRepository empresaRepository;
+    private final ModelMapper modelMapper;
+    
+    // Crear proceso
+    public ProcesoDTO crearProceso(ProcesoDTO dto) {
+        Proceso proceso = modelMapper.map(dto, Proceso.class);
+        proceso.setEstado("BORRADOR"); // valor por defecto
 
-    public ProcesoService(ProcesoRepository procesoRepository) {
-        this.procesoRepository = procesoRepository;
-    }
+        // Vincular con la empresa
+        Empresa empresa = empresaRepository.findById(dto.getIdEmpresa())
+                .orElseThrow(() -> new RuntimeException("Empresa no encontrada"));
+        proceso.setEmpresa(empresa);
 
-    // Crear o actualizar proceso
-     public Proceso crearProceso(Proceso proceso) {
-        proceso.setEstado("BORRADOR"); // por defecto
-        return procesoRepository.save(proceso);
+        Proceso guardado = procesoRepository.save(proceso);
+        return convertirADTO(guardado);
     }
 
     // Editar proceso
-    public Proceso editarProceso(Long id, Proceso datosActualizados) {
-        Optional<Proceso> existenteOpt = procesoRepository.findById(id);
+    public ProcesoDTO editarProceso(Long id, ProcesoDTO dto) {
+        Proceso existente = procesoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Proceso no encontrado"));
 
-        if (existenteOpt.isEmpty()) {
-            throw new RuntimeException("Proceso no encontrado");
+        existente.setNombre(dto.getNombre());
+        existente.setDescripcion(dto.getDescripcion());
+        existente.setCategoria(dto.getCategoria());
+        existente.setEstado(dto.getEstado());
+
+        // Si se envía un nuevo idEmpresa, actualizarlo
+        if (dto.getIdEmpresa() != null) {
+            Empresa empresa = empresaRepository.findById(dto.getIdEmpresa())
+                    .orElseThrow(() -> new RuntimeException("Empresa no encontrada"));
+            existente.setEmpresa(empresa);
         }
 
-        Proceso existente = existenteOpt.get();
-        existente.setNombre(datosActualizados.getNombre());
-        existente.setDescripcion(datosActualizados.getDescripcion());
-        existente.setCategoria(datosActualizados.getCategoria());
-        existente.setEstado(datosActualizados.getEstado());
-
-        return procesoRepository.save(existente);
+        Proceso actualizado = procesoRepository.save(existente);
+        return convertirADTO(actualizado);
     }
 
-    // Listar todos los procesos
-    public List<Proceso> listarProcesos() {
-        return procesoRepository.findAll();
+    // Listar todos
+    public List<ProcesoDTO> listarProcesos() {
+        return procesoRepository.findAll()
+                .stream()
+                .map(this::convertirADTO)
+                .collect(Collectors.toList());
     }
 
-    // Buscar proceso por id
-    public Optional<Proceso> buscarPorId(Long id) {
-        return procesoRepository.findById(id);
+    // Buscar por id
+    public Optional<ProcesoDTO> buscarPorId(Long id) {
+        return procesoRepository.findById(id).map(this::convertirADTO);
     }
 
-    // Listar procesos por empresa
-    public List<Proceso> listarPorEmpresa(Long idEmpresa) {
-        return procesoRepository.findByEmpresaIdEmpresa(idEmpresa);
+    // Listar por empresa
+    public List<ProcesoDTO> listarPorEmpresa(Long idEmpresa) {
+        return procesoRepository.findByEmpresaIdEmpresa(idEmpresa)
+                .stream()
+                .map(this::convertirADTO)
+                .collect(Collectors.toList());
     }
 
-    // Eliminar proceso (marcar como inactivo en lugar de borrar)
-    public Proceso desactivarProceso(Long id) {
-        Optional<Proceso> existenteOpt = procesoRepository.findById(id);
+    // Desactivar
+    public ProcesoDTO desactivarProceso(Long id) {
+        Proceso existente = procesoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Proceso no encontrado"));
 
-        if (existenteOpt.isEmpty()) {
-            throw new RuntimeException("Proceso no encontrado");
-        }
-
-        Proceso existente = existenteOpt.get();
         existente.setEstado("INACTIVO");
+        Proceso actualizado = procesoRepository.save(existente);
 
-        return procesoRepository.save(existente);
+        return convertirADTO(actualizado);
+    }
+
+    // ===== Métodos auxiliares =====
+    private ProcesoDTO convertirADTO(Proceso proceso) {
+        ProcesoDTO dto = modelMapper.map(proceso, ProcesoDTO.class);
+        dto.setIdEmpresa(proceso.getEmpresa().getIdEmpresa()); 
+        return dto;
     }
 }

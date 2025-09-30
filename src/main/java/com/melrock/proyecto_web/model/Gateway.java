@@ -5,7 +5,8 @@ import lombok.*;
 
 @Entity
 @Table(name = "gateway")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

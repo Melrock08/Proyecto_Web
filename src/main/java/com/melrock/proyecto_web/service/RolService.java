@@ -1,63 +1,79 @@
 package com.melrock.proyecto_web.service;
 
-import com.melrock.proyecto_web.repository.RolRepository;
-import org.springframework.stereotype.Service;
+import com.melrock.proyecto_web.dto.RolDTO;
 import com.melrock.proyecto_web.model.Rol;
+import com.melrock.proyecto_web.model.Empresa;
+import com.melrock.proyecto_web.repository.RolRepository;
+import com.melrock.proyecto_web.repository.EmpresaRepository;
+import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class RolService {
 
     private final RolRepository rolRepository;
-
-    public RolService(RolRepository rolRepository) {
-        this.rolRepository = rolRepository;
-    }
-
+    private final EmpresaRepository empresaRepository;
+    private final ModelMapper modelMapper;
+    
     // Crear rol
-    public Rol crearRol(Rol rol) {
-        if (rol.getNombre() == null || rol.getNombre().isBlank()) {
+    public RolDTO crearRol(RolDTO dto) {
+        if (dto.getNombre() == null || dto.getNombre().isBlank()) {
             throw new RuntimeException("El rol debe tener un nombre");
         }
-        return rolRepository.save(rol);
+
+        Rol rol = modelMapper.map(dto, Rol.class);
+
+        if (dto.getIdEmpresa() != null) {
+            Empresa empresa = empresaRepository.findById(dto.getIdEmpresa())
+                    .orElseThrow(() -> new RuntimeException("Empresa no encontrada"));
+            rol.setEmpresa(empresa);
+        }
+
+        Rol guardado = rolRepository.save(rol);
+        return convertirADTO(guardado);
     }
 
     // Editar rol
-    public Rol editarRol(Long id, Rol datosActualizados) {
-        Optional<Rol> existenteOpt = rolRepository.findById(id);
+    public RolDTO editarRol(Long id, RolDTO dto) {
+        Rol existente = rolRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Rol no encontrado"));
 
-        if (existenteOpt.isEmpty()) {
-            throw new RuntimeException("Rol no encontrado");
+        existente.setNombre(dto.getNombre());
+        existente.setDescripcion(dto.getDescripcion());
+
+        if (dto.getIdEmpresa() != null) {
+            Empresa empresa = empresaRepository.findById(dto.getIdEmpresa())
+                    .orElseThrow(() -> new RuntimeException("Empresa no encontrada"));
+            existente.setEmpresa(empresa);
         }
 
-        Rol existente = existenteOpt.get();
-        existente.setNombre(datosActualizados.getNombre());
-        existente.setDescripcion(datosActualizados.getDescripcion());
-
-        return rolRepository.save(existente);
+        Rol actualizado = rolRepository.save(existente);
+        return convertirADTO(actualizado);
     }
 
     // Listar todos los roles
-    public List<Rol> listarRoles() {
-        return rolRepository.findAll();
+    public List<RolDTO> listarRoles() {
+        return rolRepository.findAll()
+                .stream()
+                .map(this::convertirADTO)
+                .collect(Collectors.toList());
     }
 
-    // Buscar rol por id
-    public Optional<Rol> buscarPorId(Long id) {
-        return rolRepository.findById(id);
+    // Buscar por id
+    public Optional<RolDTO> buscarPorId(Long id) {
+        return rolRepository.findById(id).map(this::convertirADTO);
     }
 
     // Eliminar rol
-      public void eliminarRol(Long id) {
-        Optional<Rol> existenteOpt = rolRepository.findById(id);
-
-        if (existenteOpt.isEmpty()) {
-            throw new RuntimeException("Rol no encontrado");
-        }
-
-        Rol rol = existenteOpt.get();
+    public void eliminarRol(Long id) {
+        Rol rol = rolRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Rol no encontrado"));
 
         if (rol.getEmpresa() != null && rol.getEmpresa().getProcesos() != null) {
             boolean enUso = rol.getEmpresa().getProcesos().stream()
@@ -70,5 +86,14 @@ public class RolService {
         }
 
         rolRepository.deleteById(id);
+    }
+
+    // ===== Método auxiliar =====
+    private RolDTO convertirADTO(Rol rol) {
+        RolDTO dto = modelMapper.map(rol, RolDTO.class);
+        if (rol.getEmpresa() != null) {
+            dto.setIdEmpresa(rol.getEmpresa().getIdEmpresa());
+        }
+        return dto;
     }
 }

@@ -16,4 +16,8 @@ public class EmpresaDTO {
     @NotBlank(message = "El NIT es obligatorio")
     @Size(min = 5, max = 20, message = "El NIT debe tener entre 5 y 20 caracteres")
     private String nit;
+
+    @NotBlank(message = "El correo de contacto es obligatorio")
+    @Size(max = 100, message = "El correo de contacto no debe exceder los 100 caracteres")
+    private String correoContacto;
 }

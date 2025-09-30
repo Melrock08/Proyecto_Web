@@ -25,5 +25,6 @@ public class ProcesoDTO {
     private String estado;
 
     @NotNull(message = "La empresa es obligatoria")
-    private Long idEmpresa;
+    private Long idEmpresa; 
 }
+

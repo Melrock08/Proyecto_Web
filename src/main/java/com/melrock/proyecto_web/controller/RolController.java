@@ -1,57 +1,57 @@
 package com.melrock.proyecto_web.controller;
 
-import com.melrock.proyecto_web.model.Rol;
+import com.melrock.proyecto_web.dto.RolDTO;
 import com.melrock.proyecto_web.service.RolService;
-import org.modelmapper.ModelMapper;
+import jakarta.validation.Valid;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.validation.Valid;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/roles")
 public class RolController {
 
     private final RolService rolService;
-    private final ModelMapper modelMapper;
 
-    public RolController(RolService rolService, ModelMapper modelMapper) {
+    public RolController(RolService rolService) {
         this.rolService = rolService;
-        this.modelMapper = modelMapper;
     }
-
-    // Crear rol (HU-17)
+    
+    // Crear rol
     @PostMapping
-    public ResponseEntity<Rol> crearRol(@Valid @RequestBody Rol rol) {
-        Rol nuevo = rolService.crearRol(rol);
+    public ResponseEntity<RolDTO> crearRol(@Valid @RequestBody RolDTO rolDTO) {
+        RolDTO nuevo = rolService.crearRol(rolDTO);
         return ResponseEntity.ok(nuevo);
     }
 
-    // Editar rol (HU-18)
+    // Editar rol
     @PutMapping("/{id}")
-    public ResponseEntity<Rol> editarRol(@PathVariable Long id, @Valid @RequestBody Rol rol) {
-        Rol actualizado = rolService.editarRol(id, rol);
+    public ResponseEntity<RolDTO> editarRol(@PathVariable Long id, @Valid @RequestBody RolDTO rolDTO) {
+        RolDTO actualizado = rolService.editarRol(id, rolDTO);
         return ResponseEntity.ok(actualizado);
     }
 
-    // Eliminar rol (HU-19)
+    // Eliminar rol
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminarRol(@PathVariable Long id) {
         rolService.eliminarRol(id);
         return ResponseEntity.noContent().build();
     }
 
-    // Listar roles (HU-20)
+    // Listar roles
     @GetMapping
-    public ResponseEntity<List<Rol>> listarRoles() {
-        return ResponseEntity.ok(rolService.listarRoles());
+    public ResponseEntity<List<RolDTO>> listarRoles() {
+        List<RolDTO> roles = rolService.listarRoles();
+        return ResponseEntity.ok(roles);
     }
 
-    // Buscar rol por ID (HU-20)
+    // Buscar rol por ID
     @GetMapping("/{id}")
-    public ResponseEntity<Optional<Rol>> buscarPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(rolService.buscarPorId(id));
+    public ResponseEntity<RolDTO> buscarPorId(@PathVariable Long id) {
+        RolDTO rol = rolService.buscarPorId(id)
+                .orElseThrow(() -> new RuntimeException("Rol no encontrado"));
+        return ResponseEntity.ok(rol);
     }
 }

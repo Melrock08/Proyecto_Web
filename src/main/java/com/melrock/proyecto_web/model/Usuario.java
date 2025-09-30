@@ -5,9 +5,12 @@ import lombok.*;
 
 @Entity
 @Table(name = "usuario")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ToString(onlyExplicitlyIncluded = true)
 @Builder
 public class Usuario {
 
@@ -21,8 +24,8 @@ public class Usuario {
     @Column(nullable = false, unique = true)
     private String correo;
 
-    @Column(nullable = false)
-    private String contraseña;
+    @Column(name = "contraseña", nullable = false)
+    private String contrasena;
 
     @Column(nullable = false)
     private String rolSistema; // admin, editor, lector

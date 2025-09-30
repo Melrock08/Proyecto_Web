@@ -5,7 +5,8 @@ import lombok.*;
 
 @Entity
 @Table(name = "rol")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -23,6 +24,6 @@ public class Rol {
 
     // Relaciones
     @ManyToOne
-    @JoinColumn(name = "id_empresa", nullable = false)
+    @JoinColumn(name = "idEmpresa", nullable = false)
     private Empresa empresa;
 }
