@@ -21,13 +21,13 @@ public class Usuario {
     @Column(nullable = false, unique = true)
     private String correo;
 
-    @Column(nullable = false)
+    // nota: comillas dobles dentro de la cadena para que el nombre en DDL sea "contraseña"
+    @Column(name = "\"contraseña\"", nullable = false)
     private String contraseña;
 
     @Column(nullable = false)
-    private String rolSistema; // admin, editor, lector
+    private String rolSistema;
 
-    // Relaciones
     @ManyToOne
     @JoinColumn(name = "id_empresa", nullable = false)
     private Empresa empresa;

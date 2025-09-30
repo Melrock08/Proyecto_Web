@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "gateway")
+@Table(name = "gateways")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -13,12 +13,12 @@ public class Gateway {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_gateway")
     private Long idGateway;
 
     @Column(nullable = false)
-    private String tipo; // exclusivo, paralelo, inclusivo
+    private String tipo;
 
-    // Relaciones
     @ManyToOne
     @JoinColumn(name = "id_proceso", nullable = false)
     private Proceso proceso;
