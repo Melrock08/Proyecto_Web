@@ -1,6 +1,7 @@
 package com.melrock.proyecto_web.service;
 
 import com.melrock.proyecto_web.dto.UsuarioDTO;
+import com.melrock.proyecto_web.dto.UsuarioRegistroDTO;
 import com.melrock.proyecto_web.model.Usuario;
 import com.melrock.proyecto_web.model.Empresa;
 import com.melrock.proyecto_web.repository.UsuarioRepository;
@@ -20,20 +21,18 @@ public class UsuarioService {
     private final UsuarioRepository usuarioRepository;
     private final EmpresaRepository empresaRepository;
     private final ModelMapper modelMapper;
-    
-    // Registrar usuario dentro de una empresa
-    public UsuarioDTO registrarUsuario(UsuarioDTO dto) {
+
+    // Crear usuario dentro de una empresa
+    public UsuarioDTO registrarUsuario(UsuarioRegistroDTO dto) {
         if (usuarioRepository.findByCorreo(dto.getCorreo()) != null) {
             throw new RuntimeException("El correo ya está en uso");
         }
 
         Usuario usuario = modelMapper.map(dto, Usuario.class);
 
-        if (dto.getIdEmpresa() != null) {
-            Empresa empresa = empresaRepository.findById(dto.getIdEmpresa())
-                    .orElseThrow(() -> new RuntimeException("Empresa no encontrada"));
-            usuario.setEmpresa(empresa);
-        }
+        Empresa empresa = empresaRepository.findById(dto.getIdEmpresa())
+                .orElseThrow(() -> new RuntimeException("Empresa no encontrada"));
+        usuario.setEmpresa(empresa);
 
         Usuario guardado = usuarioRepository.save(usuario);
         return convertirADTO(guardado);
@@ -60,9 +59,9 @@ public class UsuarioService {
     }
 
     // Simulación de login
-    public UsuarioDTO login(String correo, String contraseña) {
+    public UsuarioDTO login(String correo, String contrasena) {
         Usuario usuario = usuarioRepository.findByCorreo(correo);
-        if (usuario != null && usuario.getContrasena().equals(contraseña)) {
+        if (usuario != null && usuario.getContrasena().equals(contrasena)) {
             return convertirADTO(usuario);
         }
         throw new RuntimeException("Credenciales inválidas o usuario inactivo");
@@ -77,20 +76,18 @@ public class UsuarioService {
     }
 
     // Actualizar usuario
-    public UsuarioDTO actualizarUsuario(Long id, UsuarioDTO dto) {
+    public UsuarioDTO actualizarUsuario(Long id, UsuarioRegistroDTO dto) {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
         usuario.setNombre(dto.getNombre());
         usuario.setCorreo(dto.getCorreo());
-        usuario.setContraseña(dto.getContraseña());
+        usuario.setContrasena(dto.getContrasena());
         usuario.setRolSistema(dto.getRolSistema());
 
-        if (dto.getIdEmpresa() != null) {
-            Empresa empresa = empresaRepository.findById(dto.getIdEmpresa())
-                    .orElseThrow(() -> new RuntimeException("Empresa no encontrada"));
-            usuario.setEmpresa(empresa);
-        }
+        Empresa empresa = empresaRepository.findById(dto.getIdEmpresa())
+                .orElseThrow(() -> new RuntimeException("Empresa no encontrada"));
+        usuario.setEmpresa(empresa);
 
         Usuario actualizado = usuarioRepository.save(usuario);
         return convertirADTO(actualizado);

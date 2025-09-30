@@ -1,6 +1,7 @@
 package com.melrock.proyecto_web.controller;
 
 import com.melrock.proyecto_web.dto.UsuarioDTO;
+import com.melrock.proyecto_web.dto.UsuarioRegistroDTO;
 import com.melrock.proyecto_web.service.UsuarioService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -20,8 +21,8 @@ public class UsuarioController {
 
     // Crear usuario dentro de una empresa
     @PostMapping
-    public ResponseEntity<UsuarioDTO> crearUsuario(@Valid @RequestBody UsuarioDTO usuarioDTO) {
-        UsuarioDTO nuevo = usuarioService.registrarUsuario(usuarioDTO);
+    public ResponseEntity<UsuarioDTO> crearUsuario(@Valid @RequestBody UsuarioRegistroDTO usuarioRegistroDTO) {
+        UsuarioDTO nuevo = usuarioService.registrarUsuario(usuarioRegistroDTO);
         return ResponseEntity.ok(nuevo);
     }
 
@@ -63,9 +64,9 @@ public class UsuarioController {
 
     // Actualizar usuario
     @PutMapping("/{id}")
-    public ResponseEntity<UsuarioDTO> actualizarUsuario(@PathVariable Long id, 
-                                                        @Valid @RequestBody UsuarioDTO usuarioDTO) {
-        UsuarioDTO actualizado = usuarioService.actualizarUsuario(id, usuarioDTO);
+    public ResponseEntity<UsuarioDTO> actualizarUsuario(@PathVariable Long id,
+                                                        @Valid @RequestBody UsuarioRegistroDTO usuarioRegistroDTO) {
+        UsuarioDTO actualizado = usuarioService.actualizarUsuario(id, usuarioRegistroDTO);
         return ResponseEntity.ok(actualizado);
     }
 }

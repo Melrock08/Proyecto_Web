@@ -2,9 +2,7 @@ package com.melrock.proyecto_web.service;
 
 import com.melrock.proyecto_web.dto.EmpresaDTO;
 import com.melrock.proyecto_web.model.Empresa;
-import com.melrock.proyecto_web.model.Usuario;
 import com.melrock.proyecto_web.repository.EmpresaRepository;
-import com.melrock.proyecto_web.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;

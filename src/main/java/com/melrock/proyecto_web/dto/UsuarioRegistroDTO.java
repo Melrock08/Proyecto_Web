@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
-public class UsuarioDTO {
+public class UsuarioRegistroDTO {
 
     private Long idUsuario;
 
@@ -19,11 +19,13 @@ public class UsuarioDTO {
     @Email(message = "El correo debe tener un formato válido")
     private String correo;
 
+    @NotBlank(message = "La contraseña es obligatoria")
+    @Size(min = 6, message = "La contraseña debe tener al menos 6 caracteres")
+    private String contrasena;
+
     @NotBlank(message = "El rol es obligatorio")
     private String rolSistema; // ADMIN, EDITOR, LECTOR
 
     @NotNull(message = "La empresa es obligatoria")
     private Long idEmpresa;
-
-    
 }
