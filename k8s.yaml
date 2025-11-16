@@ -28,19 +28,18 @@ spec:
           ports:
             - containerPort: 8080   # Spring Boot usa 8080
           env:
-            - name: DB_URL
+            - name: SPRING_DATASOURCE_URL
               value: jdbc:mysql://10.43.103.168:3306/procesos_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
-            - name: DB_USER
+            - name: SPRING_DATASOURCE_USERNAME
               valueFrom:
                 secretKeyRef:
                   name: db-secret
                   key: username
-            - name: DB_PASSWORD
+            - name: SPRING_DATASOURCE_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: db-secret
                   key: password
-
 
 ---
 apiVersion: v1
