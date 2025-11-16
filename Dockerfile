@@ -1,5 +1,5 @@
 # Imagen base con Java 21
-FROM openjdk:21-jdk-slim
+FROM eclipse-temurin:21-jdk
 
 # Copiar el JAR ya construido por Maven y renombrarlo como app.jar
 COPY target/*.jar app.jar
