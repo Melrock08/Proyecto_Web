@@ -65,7 +65,7 @@ metadata:
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
-  ingressClassName: public   # normalmente en MicroK8s es "public"
+  ingressClassName: public   
   rules:
     - http:
         paths:

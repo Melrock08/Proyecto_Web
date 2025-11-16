@@ -17,14 +17,14 @@ public class EmpresaService {
 
     private final EmpresaRepository empresaRepository;
     private final ModelMapper modelMapper;
-    
+
     // Crear empresa
     public EmpresaDTO crearEmpresa(EmpresaDTO dto) {
         Empresa empresa = modelMapper.map(dto, Empresa.class);
         Empresa nuevaEmpresa = empresaRepository.save(empresa);
         return convertirADTO(nuevaEmpresa);
-    }  
-    
+    }
+
     // Listar todas las empresas
     public List<EmpresaDTO> listarEmpresas() {
         return empresaRepository.findAll()
@@ -41,6 +41,7 @@ public class EmpresaService {
     // Buscar por NIT
     public EmpresaDTO buscarPorNit(String nit) {
         Empresa empresa = empresaRepository.findByNit(nit);
+        if (empresa == null) throw new RuntimeException("Empresa no encontrada por NIT: " + nit);
         return convertirADTO(empresa);
     }
 
@@ -57,7 +58,7 @@ public class EmpresaService {
         Empresa empresa = empresaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Empresa no encontrada con id: " + id));
 
-        empresa.setNombre(dto.getNombre());
+        empresa.setNombreEmpresa(dto.getNombreEmpresa());
         empresa.setNit(dto.getNit());
         empresa.setCorreoContacto(dto.getCorreoContacto());
 

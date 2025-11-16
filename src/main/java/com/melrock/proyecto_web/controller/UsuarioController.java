@@ -2,6 +2,7 @@ package com.melrock.proyecto_web.controller;
 
 import com.melrock.proyecto_web.dto.UsuarioDTO;
 import com.melrock.proyecto_web.dto.UsuarioRegistroDTO;
+import com.melrock.proyecto_web.dto.LoginDTO;
 import com.melrock.proyecto_web.service.UsuarioService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +20,7 @@ public class UsuarioController {
         this.usuarioService = usuarioService;
     }
 
-    // Crear usuario dentro de una empresa
+    // Crear usuario (sin uso de header)
     @PostMapping
     public ResponseEntity<UsuarioDTO> crearUsuario(@Valid @RequestBody UsuarioRegistroDTO usuarioRegistroDTO) {
         UsuarioDTO nuevo = usuarioService.registrarUsuario(usuarioRegistroDTO);
@@ -50,8 +51,8 @@ public class UsuarioController {
 
     // Inicio de sesión
     @PostMapping("/login")
-    public ResponseEntity<UsuarioDTO> login(@RequestParam String correo, @RequestParam String contraseña) {
-        UsuarioDTO usuarioDTO = usuarioService.login(correo, contraseña);
+    public ResponseEntity<UsuarioDTO> login(@Valid @RequestBody LoginDTO loginDTO) {
+        UsuarioDTO usuarioDTO = usuarioService.login(loginDTO.getCorreo(), loginDTO.getContrasena());
         return ResponseEntity.ok(usuarioDTO);
     }
 
@@ -60,13 +61,5 @@ public class UsuarioController {
     public ResponseEntity<Void> eliminarUsuario(@PathVariable Long id) {
         usuarioService.eliminarUsuario(id);
         return ResponseEntity.noContent().build();
-    }
-
-    // Actualizar usuario
-    @PutMapping("/{id}")
-    public ResponseEntity<UsuarioDTO> actualizarUsuario(@PathVariable Long id,
-                                                        @Valid @RequestBody UsuarioRegistroDTO usuarioRegistroDTO) {
-        UsuarioDTO actualizado = usuarioService.actualizarUsuario(id, usuarioRegistroDTO);
-        return ResponseEntity.ok(actualizado);
     }
 }

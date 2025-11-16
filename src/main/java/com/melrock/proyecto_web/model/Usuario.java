@@ -28,7 +28,7 @@ public class Usuario {
     private String contrasena;
 
     @Column(nullable = false)
-    private String rolSistema; // admin, editor, lector
+    private String rolSistema; 
 
     // Relaciones
     @ManyToOne

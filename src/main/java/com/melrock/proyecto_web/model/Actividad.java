@@ -20,7 +20,7 @@ public class Actividad {
     private String nombre;
 
     @Column(nullable = false)
-    private String tipo; // manual, automática, de usuario, etc.
+    private String tipo; 
 
     @Column(columnDefinition = "TEXT")
     private String descripcion;

@@ -19,7 +19,7 @@ public class Empresa {
     private Long idEmpresa;
 
     @Column(nullable = false, unique = true)
-    private String nombre;
+    private String nombreEmpresa;
 
     @Column(nullable = false, unique = true)
     private String nit;

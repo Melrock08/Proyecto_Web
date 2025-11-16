@@ -1,10 +1,10 @@
 package com.melrock.proyecto_web.service;
 
 import com.melrock.proyecto_web.dto.GatewayDTO;
+import com.melrock.proyecto_web.dto.ProcesoDTO;
 import com.melrock.proyecto_web.model.Gateway;
 import com.melrock.proyecto_web.model.Proceso;
 import com.melrock.proyecto_web.repository.GatewayRepository;
-import com.melrock.proyecto_web.repository.ProcesoRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -18,9 +18,9 @@ import java.util.stream.Collectors;
 public class GatewayService {
 
     private final GatewayRepository gatewayRepository;
-    private final ProcesoRepository procesoRepository;
+    private final ProcesoService procesoService;
     private final ModelMapper modelMapper;
-    
+
     // Crear gateway
     public GatewayDTO crearGateway(GatewayDTO dto) {
         Gateway gateway = new Gateway();
@@ -32,9 +32,10 @@ public class GatewayService {
         }
         gateway.setTipo(tipo);
 
-        // Vincular proceso
-        Proceso proceso = procesoRepository.findById(dto.getIdProceso())
+        // Vincular proceso via ProcesoService
+        ProcesoDTO procesoDto = procesoService.buscarPorId(dto.getIdProceso())
                 .orElseThrow(() -> new RuntimeException("Proceso no encontrado"));
+        Proceso proceso = modelMapper.map(procesoDto, Proceso.class);
         gateway.setProceso(proceso);
 
         Gateway guardado = gatewayRepository.save(gateway);
@@ -53,8 +54,9 @@ public class GatewayService {
         existente.setTipo(tipo);
 
         if (dto.getIdProceso() != null) {
-            Proceso proceso = procesoRepository.findById(dto.getIdProceso())
+            ProcesoDTO procesoDto = procesoService.buscarPorId(dto.getIdProceso())
                     .orElseThrow(() -> new RuntimeException("Proceso no encontrado"));
+            Proceso proceso = modelMapper.map(procesoDto, Proceso.class);
             existente.setProceso(proceso);
         }
 

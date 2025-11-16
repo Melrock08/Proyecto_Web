@@ -1,9 +1,9 @@
 package com.melrock.proyecto_web.service;
 
+import com.melrock.proyecto_web.dto.EmpresaDTO;
 import com.melrock.proyecto_web.dto.ProcesoDTO;
 import com.melrock.proyecto_web.model.Empresa;
 import com.melrock.proyecto_web.model.Proceso;
-import com.melrock.proyecto_web.repository.EmpresaRepository;
 import com.melrock.proyecto_web.repository.ProcesoRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -18,17 +18,18 @@ import java.util.stream.Collectors;
 public class ProcesoService {
 
     private final ProcesoRepository procesoRepository;
-    private final EmpresaRepository empresaRepository;
+    private final EmpresaService empresaService;
     private final ModelMapper modelMapper;
-    
+
     // Crear proceso
     public ProcesoDTO crearProceso(ProcesoDTO dto) {
         Proceso proceso = modelMapper.map(dto, Proceso.class);
         proceso.setEstado("BORRADOR"); // valor por defecto
 
-        // Vincular con la empresa
-        Empresa empresa = empresaRepository.findById(dto.getIdEmpresa())
+        // Vincular con la empresa via EmpresaService
+        EmpresaDTO empresaDto = empresaService.buscarPorId(dto.getIdEmpresa())
                 .orElseThrow(() -> new RuntimeException("Empresa no encontrada"));
+        Empresa empresa = modelMapper.map(empresaDto, Empresa.class);
         proceso.setEmpresa(empresa);
 
         Proceso guardado = procesoRepository.save(proceso);
@@ -45,10 +46,11 @@ public class ProcesoService {
         existente.setCategoria(dto.getCategoria());
         existente.setEstado(dto.getEstado());
 
-        // Si se envía un nuevo idEmpresa, actualizarlo
+        // Si se envía un nuevo idEmpresa, actualizarlo vía service
         if (dto.getIdEmpresa() != null) {
-            Empresa empresa = empresaRepository.findById(dto.getIdEmpresa())
+            EmpresaDTO empresaDto = empresaService.buscarPorId(dto.getIdEmpresa())
                     .orElseThrow(() -> new RuntimeException("Empresa no encontrada"));
+            Empresa empresa = modelMapper.map(empresaDto, Empresa.class);
             existente.setEmpresa(empresa);
         }
 
@@ -91,7 +93,9 @@ public class ProcesoService {
     // ===== Métodos auxiliares =====
     private ProcesoDTO convertirADTO(Proceso proceso) {
         ProcesoDTO dto = modelMapper.map(proceso, ProcesoDTO.class);
-        dto.setIdEmpresa(proceso.getEmpresa().getIdEmpresa()); 
+        if (proceso.getEmpresa() != null) {
+            dto.setIdEmpresa(proceso.getEmpresa().getIdEmpresa());
+        }
         return dto;
     }
 }

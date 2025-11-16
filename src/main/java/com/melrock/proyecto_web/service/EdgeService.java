@@ -1,14 +1,14 @@
 package com.melrock.proyecto_web.service;
 
+import com.melrock.proyecto_web.dto.ActividadDTO;
 import com.melrock.proyecto_web.dto.EdgeDTO;
+import com.melrock.proyecto_web.dto.GatewayDTO;
+import com.melrock.proyecto_web.dto.ProcesoDTO;
 import com.melrock.proyecto_web.model.Actividad;
 import com.melrock.proyecto_web.model.Edge;
 import com.melrock.proyecto_web.model.Gateway;
 import com.melrock.proyecto_web.model.Proceso;
-import com.melrock.proyecto_web.repository.ActividadRepository;
 import com.melrock.proyecto_web.repository.EdgeRepository;
-import com.melrock.proyecto_web.repository.GatewayRepository;
-import com.melrock.proyecto_web.repository.ProcesoRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -22,38 +22,42 @@ import java.util.stream.Collectors;
 public class EdgeService {
 
     private final EdgeRepository edgeRepository;
-    private final ProcesoRepository procesoRepository;
-    private final ActividadRepository actividadRepository;
-    private final GatewayRepository gatewayRepository;
+    private final ProcesoService procesoService;
+    private final ActividadService actividadService;
+    private final GatewayService gatewayService;
     private final ModelMapper modelMapper;
 
-    
-    // Crear o actualizar arco
+    // Crear arco
     public EdgeDTO crearEdge(EdgeDTO dto) {
         Edge edge = new Edge();
 
-        Proceso proceso = procesoRepository.findById(dto.getIdProceso())
+        ProcesoDTO procesoDto = procesoService.buscarPorId(dto.getIdProceso())
                 .orElseThrow(() -> new RuntimeException("Proceso no encontrado"));
+        Proceso proceso = modelMapper.map(procesoDto, Proceso.class);
         edge.setProceso(proceso);
 
         if (dto.getIdOrigenActividad() != null) {
-            Actividad origenAct = actividadRepository.findById(dto.getIdOrigenActividad())
+            ActividadDTO origenActDto = actividadService.buscarPorId(dto.getIdOrigenActividad())
                     .orElseThrow(() -> new RuntimeException("Actividad origen no encontrada"));
+            Actividad origenAct = modelMapper.map(origenActDto, Actividad.class);
             edge.setOrigenActividad(origenAct);
         }
         if (dto.getIdDestinoActividad() != null) {
-            Actividad destinoAct = actividadRepository.findById(dto.getIdDestinoActividad())
+            ActividadDTO destinoActDto = actividadService.buscarPorId(dto.getIdDestinoActividad())
                     .orElseThrow(() -> new RuntimeException("Actividad destino no encontrada"));
+            Actividad destinoAct = modelMapper.map(destinoActDto, Actividad.class);
             edge.setDestinoActividad(destinoAct);
         }
         if (dto.getIdOrigenGateway() != null) {
-            Gateway origenGtw = gatewayRepository.findById(dto.getIdOrigenGateway())
+            GatewayDTO origenGtwDto = gatewayService.buscarPorId(dto.getIdOrigenGateway())
                     .orElseThrow(() -> new RuntimeException("Gateway origen no encontrado"));
+            Gateway origenGtw = modelMapper.map(origenGtwDto, Gateway.class);
             edge.setOrigenGateway(origenGtw);
         }
         if (dto.getIdDestinoGateway() != null) {
-            Gateway destinoGtw = gatewayRepository.findById(dto.getIdDestinoGateway())
+            GatewayDTO destinoGtwDto = gatewayService.buscarPorId(dto.getIdDestinoGateway())
                     .orElseThrow(() -> new RuntimeException("Gateway destino no encontrado"));
+            Gateway destinoGtw = modelMapper.map(destinoGtwDto, Gateway.class);
             edge.setDestinoGateway(destinoGtw);
         }
 
@@ -67,24 +71,39 @@ public class EdgeService {
                 .orElseThrow(() -> new RuntimeException("Arco no encontrado"));
 
         if (dto.getIdOrigenActividad() != null) {
-            Actividad origenAct = actividadRepository.findById(dto.getIdOrigenActividad())
+            ActividadDTO origenActDto = actividadService.buscarPorId(dto.getIdOrigenActividad())
                     .orElseThrow(() -> new RuntimeException("Actividad origen no encontrada"));
+            Actividad origenAct = modelMapper.map(origenActDto, Actividad.class);
             existente.setOrigenActividad(origenAct);
+        } else {
+            existente.setOrigenActividad(null);
         }
+
         if (dto.getIdDestinoActividad() != null) {
-            Actividad destinoAct = actividadRepository.findById(dto.getIdDestinoActividad())
+            ActividadDTO destinoActDto = actividadService.buscarPorId(dto.getIdDestinoActividad())
                     .orElseThrow(() -> new RuntimeException("Actividad destino no encontrada"));
+            Actividad destinoAct = modelMapper.map(destinoActDto, Actividad.class);
             existente.setDestinoActividad(destinoAct);
+        } else {
+            existente.setDestinoActividad(null);
         }
+
         if (dto.getIdOrigenGateway() != null) {
-            Gateway origenGtw = gatewayRepository.findById(dto.getIdOrigenGateway())
+            GatewayDTO origenGtwDto = gatewayService.buscarPorId(dto.getIdOrigenGateway())
                     .orElseThrow(() -> new RuntimeException("Gateway origen no encontrado"));
+            Gateway origenGtw = modelMapper.map(origenGtwDto, Gateway.class);
             existente.setOrigenGateway(origenGtw);
+        } else {
+            existente.setOrigenGateway(null);
         }
+
         if (dto.getIdDestinoGateway() != null) {
-            Gateway destinoGtw = gatewayRepository.findById(dto.getIdDestinoGateway())
+            GatewayDTO destinoGtwDto = gatewayService.buscarPorId(dto.getIdDestinoGateway())
                     .orElseThrow(() -> new RuntimeException("Gateway destino no encontrado"));
+            Gateway destinoGtw = modelMapper.map(destinoGtwDto, Gateway.class);
             existente.setDestinoGateway(destinoGtw);
+        } else {
+            existente.setDestinoGateway(null);
         }
 
         Edge actualizado = edgeRepository.save(existente);
@@ -116,7 +135,7 @@ public class EdgeService {
     private EdgeDTO convertirADTO(Edge edge) {
         EdgeDTO dto = new EdgeDTO();
         dto.setIdEdge(edge.getIdEdge());
-        dto.setIdProceso(edge.getProceso().getIdProceso());
+        if (edge.getProceso() != null) dto.setIdProceso(edge.getProceso().getIdProceso());
         if (edge.getOrigenActividad() != null) dto.setIdOrigenActividad(edge.getOrigenActividad().getIdActividad());
         if (edge.getDestinoActividad() != null) dto.setIdDestinoActividad(edge.getDestinoActividad().getIdActividad());
         if (edge.getOrigenGateway() != null) dto.setIdOrigenGateway(edge.getOrigenGateway().getIdGateway());

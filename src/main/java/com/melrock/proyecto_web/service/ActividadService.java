@@ -1,10 +1,10 @@
 package com.melrock.proyecto_web.service;
 
 import com.melrock.proyecto_web.dto.ActividadDTO;
+import com.melrock.proyecto_web.dto.RolDTO;
 import com.melrock.proyecto_web.model.Actividad;
 import com.melrock.proyecto_web.model.Rol;
 import com.melrock.proyecto_web.repository.ActividadRepository;
-import com.melrock.proyecto_web.repository.RolRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -18,15 +18,16 @@ import java.util.stream.Collectors;
 public class ActividadService {
 
     private final ActividadRepository actividadRepository;
-    private final RolRepository rolRepository;
+    private final RolService rolService; 
     private final ModelMapper modelMapper;
 
     // Crear actividad
     public ActividadDTO crearActividad(ActividadDTO dto) {
         Actividad actividad = modelMapper.map(dto, Actividad.class);
 
-        Rol rol = rolRepository.findById(dto.getIdRol())
+        RolDTO rolDto = rolService.buscarPorId(dto.getIdRol())
                 .orElseThrow(() -> new RuntimeException("Rol no encontrado"));
+        Rol rol = modelMapper.map(rolDto, Rol.class);
         actividad.setRol(rol);
 
         Actividad guardada = actividadRepository.save(actividad);
@@ -43,8 +44,9 @@ public class ActividadService {
         existente.setDescripcion(dto.getDescripcion());
 
         if (dto.getIdRol() != null) {
-            Rol rol = rolRepository.findById(dto.getIdRol())
+            RolDTO rolDto = rolService.buscarPorId(dto.getIdRol())
                     .orElseThrow(() -> new RuntimeException("Rol no encontrado"));
+            Rol rol = modelMapper.map(rolDto, Rol.class);
             existente.setRol(rol);
         }
 
@@ -76,7 +78,9 @@ public class ActividadService {
     // ===== Métodos auxiliares =====
     private ActividadDTO convertirADTO(Actividad actividad) {
         ActividadDTO dto = modelMapper.map(actividad, ActividadDTO.class);
-        dto.setIdRol(actividad.getRol().getIdRol());
+        if (actividad.getRol() != null) {
+            dto.setIdRol(actividad.getRol().getIdRol());
+        }
         return dto;
     }
 }

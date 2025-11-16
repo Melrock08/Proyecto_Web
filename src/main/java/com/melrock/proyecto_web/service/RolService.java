@@ -1,10 +1,10 @@
 package com.melrock.proyecto_web.service;
 
+import com.melrock.proyecto_web.dto.EmpresaDTO;
 import com.melrock.proyecto_web.dto.RolDTO;
-import com.melrock.proyecto_web.model.Rol;
 import com.melrock.proyecto_web.model.Empresa;
+import com.melrock.proyecto_web.model.Rol;
 import com.melrock.proyecto_web.repository.RolRepository;
-import com.melrock.proyecto_web.repository.EmpresaRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -18,9 +18,9 @@ import java.util.stream.Collectors;
 public class RolService {
 
     private final RolRepository rolRepository;
-    private final EmpresaRepository empresaRepository;
+    private final EmpresaService empresaService;
     private final ModelMapper modelMapper;
-    
+
     // Crear rol
     public RolDTO crearRol(RolDTO dto) {
         if (dto.getNombre() == null || dto.getNombre().isBlank()) {
@@ -30,8 +30,9 @@ public class RolService {
         Rol rol = modelMapper.map(dto, Rol.class);
 
         if (dto.getIdEmpresa() != null) {
-            Empresa empresa = empresaRepository.findById(dto.getIdEmpresa())
+            EmpresaDTO empresaDto = empresaService.buscarPorId(dto.getIdEmpresa())
                     .orElseThrow(() -> new RuntimeException("Empresa no encontrada"));
+            Empresa empresa = modelMapper.map(empresaDto, Empresa.class);
             rol.setEmpresa(empresa);
         }
 
@@ -48,8 +49,9 @@ public class RolService {
         existente.setDescripcion(dto.getDescripcion());
 
         if (dto.getIdEmpresa() != null) {
-            Empresa empresa = empresaRepository.findById(dto.getIdEmpresa())
+            EmpresaDTO empresaDto = empresaService.buscarPorId(dto.getIdEmpresa())
                     .orElseThrow(() -> new RuntimeException("Empresa no encontrada"));
+            Empresa empresa = modelMapper.map(empresaDto, Empresa.class);
             existente.setEmpresa(empresa);
         }
 
@@ -78,7 +80,7 @@ public class RolService {
         if (rol.getEmpresa() != null && rol.getEmpresa().getProcesos() != null) {
             boolean enUso = rol.getEmpresa().getProcesos().stream()
                     .flatMap(proceso -> proceso.getActividades().stream())
-                    .anyMatch(actividad -> actividad.getRol().getIdRol().equals(rol.getIdRol()));
+                    .anyMatch(actividad -> actividad.getRol() != null && actividad.getRol().getIdRol().equals(rol.getIdRol()));
 
             if (enUso) {
                 throw new RuntimeException("No se puede eliminar el rol, está asignado a actividades");

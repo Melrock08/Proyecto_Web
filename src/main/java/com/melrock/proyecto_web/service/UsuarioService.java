@@ -2,10 +2,9 @@ package com.melrock.proyecto_web.service;
 
 import com.melrock.proyecto_web.dto.UsuarioDTO;
 import com.melrock.proyecto_web.dto.UsuarioRegistroDTO;
-import com.melrock.proyecto_web.model.Usuario;
 import com.melrock.proyecto_web.model.Empresa;
+import com.melrock.proyecto_web.model.Usuario;
 import com.melrock.proyecto_web.repository.UsuarioRepository;
-import com.melrock.proyecto_web.repository.EmpresaRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -19,26 +18,33 @@ import java.util.stream.Collectors;
 public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
-    private final EmpresaRepository empresaRepository;
     private final ModelMapper modelMapper;
 
-    // Crear usuario dentro de una empresa
+    // 🔹 ID de la empresa existente (por ejemplo la primera en la base de datos)
+    private final Long idEmpresaPorDefecto = 1L;
+
     public UsuarioDTO registrarUsuario(UsuarioRegistroDTO dto) {
+        // ✅ Validar correo único
         if (usuarioRepository.findByCorreo(dto.getCorreo()) != null) {
             throw new RuntimeException("El correo ya está en uso");
         }
 
+        // ✅ Solo los usuarios ADMIN pueden registrarse
+        if (!"ADMIN".equalsIgnoreCase(dto.getRolSistema())) {
+            throw new RuntimeException("Solo los usuarios ADMIN pueden registrarse directamente.");
+        }
+
+        // ✅ Crear usuario vinculado a la empresa existente
         Usuario usuario = modelMapper.map(dto, Usuario.class);
 
-        Empresa empresa = empresaRepository.findById(dto.getIdEmpresa())
-                .orElseThrow(() -> new RuntimeException("Empresa no encontrada"));
+        Empresa empresa = new Empresa();
+        empresa.setIdEmpresa(idEmpresaPorDefecto); // Usamos siempre la empresa existente
         usuario.setEmpresa(empresa);
 
         Usuario guardado = usuarioRepository.save(usuario);
         return convertirADTO(guardado);
     }
 
-    // Listar todos los usuarios
     public List<UsuarioDTO> listarUsuarios() {
         return usuarioRepository.findAll()
                 .stream()
@@ -46,28 +52,26 @@ public class UsuarioService {
                 .collect(Collectors.toList());
     }
 
-    // Buscar por id
     public Optional<UsuarioDTO> buscarPorId(Long id) {
         return usuarioRepository.findById(id).map(this::convertirADTO);
     }
 
-    // Buscar por correo
     public UsuarioDTO buscarPorCorreo(String correo) {
         Usuario usuario = usuarioRepository.findByCorreo(correo);
         if (usuario == null) throw new RuntimeException("Usuario no encontrado");
         return convertirADTO(usuario);
     }
 
-    // Simulación de login
     public UsuarioDTO login(String correo, String contrasena) {
         Usuario usuario = usuarioRepository.findByCorreo(correo);
-        if (usuario != null && usuario.getContrasena().equals(contrasena)) {
-            return convertirADTO(usuario);
-        }
-        throw new RuntimeException("Credenciales inválidas o usuario inactivo");
+
+        if (usuario == null) throw new RuntimeException("Usuario no encontrado");
+        if (!usuario.getContrasena().equals(contrasena))
+            throw new RuntimeException("Contraseña incorrecta");
+
+        return convertirADTO(usuario);
     }
 
-    // Eliminar usuario
     public void eliminarUsuario(Long id) {
         if (!usuarioRepository.existsById(id)) {
             throw new RuntimeException("Usuario no encontrado");
@@ -75,25 +79,6 @@ public class UsuarioService {
         usuarioRepository.deleteById(id);
     }
 
-    // Actualizar usuario
-    public UsuarioDTO actualizarUsuario(Long id, UsuarioRegistroDTO dto) {
-        Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-
-        usuario.setNombre(dto.getNombre());
-        usuario.setCorreo(dto.getCorreo());
-        usuario.setContrasena(dto.getContrasena());
-        usuario.setRolSistema(dto.getRolSistema());
-
-        Empresa empresa = empresaRepository.findById(dto.getIdEmpresa())
-                .orElseThrow(() -> new RuntimeException("Empresa no encontrada"));
-        usuario.setEmpresa(empresa);
-
-        Usuario actualizado = usuarioRepository.save(usuario);
-        return convertirADTO(actualizado);
-    }
-
-    // ===== Método auxiliar =====
     private UsuarioDTO convertirADTO(Usuario usuario) {
         UsuarioDTO dto = modelMapper.map(usuario, UsuarioDTO.class);
         if (usuario.getEmpresa() != null) {

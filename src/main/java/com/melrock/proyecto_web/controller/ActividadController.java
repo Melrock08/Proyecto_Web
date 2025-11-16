@@ -11,7 +11,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/actividades")
-public class ActividadController {
+public class ActividadController {  
 
     private final ActividadService actividadService;
 
@@ -55,3 +55,4 @@ public class ActividadController {
                            .orElse(ResponseEntity.notFound().build());
     }
 }
+
