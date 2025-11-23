@@ -111,6 +111,10 @@ public class JwtUtil {
         
     }
 
+    public String extraerEmail(String token){
+        return getReclamaciones(token).getSubject();
+    }
+
     //@throws JsonProcessingException
     //@throws JsonMappingException
     public AuthorizedDTO renovarToken(Authentication autenticacion) throws JsonMappingException, JsonProcessingException{
