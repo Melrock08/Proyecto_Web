@@ -1,59 +1,76 @@
 package com.melrock.proyecto_web.security;
 
+import java.io.IOException;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.lang.NonNull;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
+
+import com.melrock.proyecto_web.exception.InvalidTokenException;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import java.io.IOException;
-
 @Component
-public class JwtFilter extends OncePerRequestFilter{
+public class JwtFilter extends OncePerRequestFilter {
+
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Autowired
+    private CustomUserDetailsService userDetailsService;
+
     @Override
-    protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
-        // Lógica del filtro JWT
-        String path = request.getRequestURI();
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain chain)
+            throws ServletException, IOException {
 
-        System.out.println("JWTFilter - el path es: " + path);
+        String header = request.getHeader("Authorization");
 
-        if (path.startsWith("/auth/swagger-ui") || path.equals("/auth/swagger-ui.html") || path.equals("/auth/v3/api-docs") || path.startsWith("/auth/v3/api-docs")  || (path.startsWith("/auth/auth")  && !path.startsWith("/auth/auth/renew-token")) ) {
-            System.out.println("JwtFilter - Sobrepasado el JWT para el path: " + path);
-            filterChain.doFilter(request, response);
-            return;
-        }
+        String token = null;
+        String username = null;
 
-        String authHeader = request.getHeader("Authorization");
+        // ================== 1. EXTRAER TOKEN ==================
+        if (header != null && header.startsWith("Bearer ")) {
+            token = header.substring(7);
 
-        if(authHeader != null && authHeader.startsWith("Bearer")){
-            String token = authHeader.substring(7);
-
-            if(!this.jwtUtil.validarToken(token)){
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                return;
+            try {
+                username = jwtUtil.extractUsername(token);
+            } catch (Exception e) {
+                throw new InvalidTokenException("JWT inválido o expirado");
             }
-
-            String email = this.jwtUtil.extraerEmail(token);
-            String rol = this.jwtUtil.extraerRol(token);
-
-            UsernamePasswordAuthenticationToken autenticacion = new UsernamePasswordAuthenticationToken(
-                email, token, java.util.Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + rol)));
-            
-            SecurityContextHolder.getContext().setAuthentication(autenticacion);
-
         }
 
-        filterChain.doFilter(request, response);
-        
+        // ================== 2. VALIDAR Y AUTENTICAR ==================
+        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+
+            // cargar el usuario desde BD
+            var userDetails = userDetailsService.loadUserByUsername(username);
+
+            // validar token comparando con el correo del UserDetails
+            if (jwtUtil.isTokenValid(token, userDetails.getUsername())) {
+
+                UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(
+                                userDetails,
+                                null,
+                                userDetails.getAuthorities()
+                        );
+
+                authentication.setDetails(
+                        new WebAuthenticationDetailsSource().buildDetails(request)
+                );
+
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
+        }
+
+        chain.doFilter(request, response);
     }
 }

@@ -7,6 +7,7 @@ import com.melrock.proyecto_web.model.Usuario;
 import com.melrock.proyecto_web.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,30 +20,49 @@ public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
     private final ModelMapper modelMapper;
+    private final PasswordEncoder passwordEncoder;
 
-    // 🔹 ID de la empresa existente (por ejemplo la primera en la base de datos)
-    private final Long idEmpresaPorDefecto = 1L;
 
-    public UsuarioDTO registrarUsuario(UsuarioRegistroDTO dto) {
-        // ✅ Validar correo único
-        if (usuarioRepository.findByCorreo(dto.getCorreo()) != null) {
-            throw new RuntimeException("El correo ya está en uso");
-        }
+    // 🔹 Registrar usuario (ADMIN)
+   public UsuarioDTO registrarUsuario(UsuarioRegistroDTO dto) {
+    if (usuarioRepository.findByCorreo(dto.getCorreo()) != null) {
+        throw new RuntimeException("El correo ya está en uso");
+    }
 
-        // ✅ Solo los usuarios ADMIN pueden registrarse
-        if (!"ADMIN".equalsIgnoreCase(dto.getRolSistema())) {
-            throw new RuntimeException("Solo los usuarios ADMIN pueden registrarse directamente.");
-        }
+    if (!"ADMIN".equalsIgnoreCase(dto.getRolSistema())) {
+        throw new RuntimeException("Solo los usuarios ADMIN pueden registrarse directamente.");
+    }
 
-        // ✅ Crear usuario vinculado a la empresa existente
-        Usuario usuario = modelMapper.map(dto, Usuario.class);
+    Usuario usuario = modelMapper.map(dto, Usuario.class);
 
+    // 🔹 Hashear contraseña
+    usuario.setContrasena(passwordEncoder.encode(dto.getContrasena()));
+
+    // 🔹 Asignar empresa si viene en DTO
+    if (dto.getIdEmpresa() != null) {
         Empresa empresa = new Empresa();
-        empresa.setIdEmpresa(idEmpresaPorDefecto); // Usamos siempre la empresa existente
+        empresa.setIdEmpresa(dto.getIdEmpresa());
         usuario.setEmpresa(empresa);
+    } else {
+        // Si no viene empresa, podrías dejar nulo o lanzar error
+        usuario.setEmpresa(null);
+    }
 
-        Usuario guardado = usuarioRepository.save(usuario);
-        return convertirADTO(guardado);
+    Usuario guardado = usuarioRepository.save(usuario);
+    return convertirADTO(guardado);
+}
+
+    // 🔹 Login (devuelve usuario, JWT se genera en controller)
+    public UsuarioDTO login(String correo, String contrasena) {
+        Usuario usuario = usuarioRepository.findByCorreo(correo);
+
+        if (usuario == null)
+            throw new RuntimeException("Usuario no encontrado");
+
+        if (!passwordEncoder.matches(contrasena, usuario.getContrasena()))
+            throw new RuntimeException("Contraseña incorrecta");
+
+        return convertirADTO(usuario);
     }
 
     public List<UsuarioDTO> listarUsuarios() {
@@ -58,17 +78,8 @@ public class UsuarioService {
 
     public UsuarioDTO buscarPorCorreo(String correo) {
         Usuario usuario = usuarioRepository.findByCorreo(correo);
-        if (usuario == null) throw new RuntimeException("Usuario no encontrado");
-        return convertirADTO(usuario);
-    }
-
-    public UsuarioDTO login(String correo, String contrasena) {
-        Usuario usuario = usuarioRepository.findByCorreo(correo);
-
-        if (usuario == null) throw new RuntimeException("Usuario no encontrado");
-        if (!usuario.getContrasena().equals(contrasena))
-            throw new RuntimeException("Contraseña incorrecta");
-
+        if (usuario == null)
+            throw new RuntimeException("Usuario no encontrado");
         return convertirADTO(usuario);
     }
 

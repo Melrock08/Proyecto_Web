@@ -7,6 +7,8 @@ public class UsuarioRegistroDTO {
 
     private Long idUsuario;
 
+    private Long idEmpresa;
+
     private String nombre;
 
     private String correo;

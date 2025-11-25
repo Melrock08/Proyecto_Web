@@ -8,3 +8,4 @@ import com.melrock.proyecto_web.model.Actividad;
 @Repository
 public interface ActividadRepository extends JpaRepository<Actividad, Long> {
 }
+
