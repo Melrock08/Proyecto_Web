@@ -2,13 +2,13 @@ package com.melrock.proyecto_web.service;
 
 import com.melrock.proyecto_web.dto.UsuarioDTO;
 import com.melrock.proyecto_web.dto.UsuarioRegistroDTO;
-import com.melrock.proyecto_web.model.Empresa;
 import com.melrock.proyecto_web.model.Usuario;
 import com.melrock.proyecto_web.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -22,45 +22,52 @@ public class UsuarioService {
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
 
+    @Transactional
+    public UsuarioDTO registrarUsuarioConEmpresaId(UsuarioRegistroDTO dto, Long idEmpresa) {
+        if (dto == null) throw new IllegalArgumentException("Datos de registro inválidos");
+        if (idEmpresa == null) throw new IllegalArgumentException("idEmpresa es requerido");
 
-    // 🔹 Registrar usuario (ADMIN)
-   public UsuarioDTO registrarUsuario(UsuarioRegistroDTO dto) {
-    if (usuarioRepository.findByCorreo(dto.getCorreo()) != null) {
-        throw new RuntimeException("El correo ya está en uso");
+        if (dto.getCorreo() == null || dto.getCorreo().isBlank()) {
+            throw new IllegalArgumentException("Correo es obligatorio");
+        }
+
+        if (usuarioRepository.findByCorreo(dto.getCorreo()) != null) {
+            throw new IllegalArgumentException("El correo ya está en uso");
+        }
+
+        if (!"ADMIN".equalsIgnoreCase(dto.getRolSistema())) {
+            throw new IllegalArgumentException("Solo los usuarios ADMIN pueden registrarse directamente.");
+        }
+
+        // Mapear usuario y asignar referencia a Empresa solo con id
+        Usuario usuario = new Usuario();
+        usuario.setNombre(dto.getNombre());
+        usuario.setCorreo(dto.getCorreo());
+        usuario.setContrasena(passwordEncoder.encode(dto.getContrasena()));
+        usuario.setRolSistema(dto.getRolSistema());
+
+        var empresaRef = new com.melrock.proyecto_web.model.Empresa();
+        empresaRef.setIdEmpresa(idEmpresa);
+        usuario.setEmpresa(empresaRef);
+
+        Usuario guardado = usuarioRepository.save(usuario);
+        return convertirADTO(guardado);
     }
 
-    if (!"ADMIN".equalsIgnoreCase(dto.getRolSistema())) {
-        throw new RuntimeException("Solo los usuarios ADMIN pueden registrarse directamente.");
-    }
-
-    Usuario usuario = modelMapper.map(dto, Usuario.class);
-
-    // 🔹 Hashear contraseña
-    usuario.setContrasena(passwordEncoder.encode(dto.getContrasena()));
-
-    // 🔹 Asignar empresa si viene en DTO
-    if (dto.getIdEmpresa() != null) {
-        Empresa empresa = new Empresa();
-        empresa.setIdEmpresa(dto.getIdEmpresa());
-        usuario.setEmpresa(empresa);
-    } else {
-        // Si no viene empresa, podrías dejar nulo o lanzar error
-        usuario.setEmpresa(null);
-    }
-
-    Usuario guardado = usuarioRepository.save(usuario);
-    return convertirADTO(guardado);
-}
-
-    // 🔹 Login (devuelve usuario, JWT se genera en controller)
+    // LOGIN y demás métodos (mantener tu implementación)
     public UsuarioDTO login(String correo, String contrasena) {
+        if (correo == null || correo.isBlank()) {
+            throw new IllegalArgumentException("Correo es obligatorio");
+        }
         Usuario usuario = usuarioRepository.findByCorreo(correo);
 
-        if (usuario == null)
-            throw new RuntimeException("Usuario no encontrado");
+        if (usuario == null) {
+            throw new IllegalArgumentException("Usuario no encontrado");
+        }
 
-        if (!passwordEncoder.matches(contrasena, usuario.getContrasena()))
-            throw new RuntimeException("Contraseña incorrecta");
+        if (!passwordEncoder.matches(contrasena, usuario.getContrasena())) {
+            throw new IllegalArgumentException("Contraseña incorrecta");
+        }
 
         return convertirADTO(usuario);
     }
@@ -79,13 +86,13 @@ public class UsuarioService {
     public UsuarioDTO buscarPorCorreo(String correo) {
         Usuario usuario = usuarioRepository.findByCorreo(correo);
         if (usuario == null)
-            throw new RuntimeException("Usuario no encontrado");
+            throw new IllegalArgumentException("Usuario no encontrado");
         return convertirADTO(usuario);
     }
 
     public void eliminarUsuario(Long id) {
         if (!usuarioRepository.existsById(id)) {
-            throw new RuntimeException("Usuario no encontrado");
+            throw new IllegalArgumentException("Usuario no encontrado");
         }
         usuarioRepository.deleteById(id);
     }

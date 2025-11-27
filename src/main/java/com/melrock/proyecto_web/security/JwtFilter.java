@@ -39,10 +39,11 @@ public class JwtFilter extends OncePerRequestFilter {
         // ================== 1. EXTRAER TOKEN ==================
         if (header != null && header.startsWith("Bearer ")) {
             token = header.substring(7);
-
             try {
                 username = jwtUtil.extractUsername(token);
             } catch (Exception e) {
+                // No lanzar excepción que rompa el flujo sin que Security la maneje.
+                // Lanzamos InvalidTokenException (será manejado por AuthenticationEntryPoint vía exceptionHandling)
                 throw new InvalidTokenException("JWT inválido o expirado");
             }
         }
@@ -50,10 +51,8 @@ public class JwtFilter extends OncePerRequestFilter {
         // ================== 2. VALIDAR Y AUTENTICAR ==================
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            // cargar el usuario desde BD
             var userDetails = userDetailsService.loadUserByUsername(username);
 
-            // validar token comparando con el correo del UserDetails
             if (jwtUtil.isTokenValid(token, userDetails.getUsername())) {
 
                 UsernamePasswordAuthenticationToken authentication =
@@ -68,6 +67,9 @@ public class JwtFilter extends OncePerRequestFilter {
                 );
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+            } else {
+                // token inválido -> lanzar para que se convierta en 401
+                throw new InvalidTokenException("JWT inválido o expirado");
             }
         }
 

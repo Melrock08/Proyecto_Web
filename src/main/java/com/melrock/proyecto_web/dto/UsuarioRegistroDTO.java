@@ -1,26 +1,19 @@
-package com.melrock.proyecto_web.dto;
+    package com.melrock.proyecto_web.dto;
 
-import lombok.Data;
+    import lombok.Data;
 
-@Data
-public class UsuarioRegistroDTO {
+    @Data
+    public class UsuarioRegistroDTO {
 
-    private Long idUsuario;
+        private String nombre;
 
-    private Long idEmpresa;
+        private String correo;
 
-    private String nombre;
+        private String contrasena;
 
-    private String correo;
+        private String rolSistema; 
 
-    private String contrasena;
+        private EmpresaRegistroDTO empresa;
 
-    private String rolSistema; // ADMIN 
-
-    private String nombreEmpresa ;
-
-    private String nit;
-
-    private String correoContacto;
-
-}
+    }
+    

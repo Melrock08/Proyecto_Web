@@ -21,25 +21,25 @@ public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
     private final CustomUserDetailsService customUserDetailsService;
+    private final AuthenticationEntryPointImpl authenticationEntryPoint;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
-                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .userDetailsService(customUserDetailsService)
-                .authorizeHttpRequests(auth -> auth
-                        // ENDPOINTS PÚBLICOS
-                        .requestMatchers(
-                                "/api/auth/**",
-                                "/api/usuarios",
-                                "/api/usuarios/register"
-
-                                
-                        ).permitAll()
-                        // TODO: si quieres dejar otros públicos, agrégalos aquí
-                        .anyRequest().authenticated()
-                );
+            .csrf(csrf -> csrf.disable())
+            .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .userDetailsService(customUserDetailsService)
+            .exceptionHandling(ex -> ex.authenticationEntryPoint(authenticationEntryPoint))
+            .authorizeHttpRequests(auth -> auth
+                // ENDPOINTS PÚBLICOS
+                .requestMatchers(
+                    "/api/auth/**",
+                    "/api/usuarios",
+                    "/api/empresas",
+                    "/api/procesos"
+                ).permitAll()
+                .anyRequest().authenticated()
+            );
 
         // Filtro JWT antes del de username/password
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

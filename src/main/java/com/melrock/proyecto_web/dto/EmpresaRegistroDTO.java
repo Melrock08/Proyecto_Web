@@ -3,9 +3,7 @@ package com.melrock.proyecto_web.dto;
 import lombok.Data;
 
 @Data
-public class EmpresaDTO {
-
-    private Long idEmpresa;
+public class EmpresaRegistroDTO {
 
     private String nombreEmpresa;
 

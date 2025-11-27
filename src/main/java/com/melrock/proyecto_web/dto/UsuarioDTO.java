@@ -11,8 +11,9 @@ public class UsuarioDTO {
 
     private String correo;
 
-    private String rolSistema; // ADMIN, EDITOR, LECTOR
+    private String rolSistema; 
 
     private Long idEmpresa;
 
 }
+ 

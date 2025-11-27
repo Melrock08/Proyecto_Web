@@ -28,7 +28,6 @@ public class EmpresaController {
         return ResponseEntity.ok(nueva);
     }
 
-
     // Listar empresas
     @GetMapping
     public ResponseEntity<List<EmpresaDTO>> listarEmpresas() {

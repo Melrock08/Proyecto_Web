@@ -24,3 +24,4 @@ public class Gateway {
     @JoinColumn(name = "id_proceso", nullable = false)
     private Proceso proceso;
 }
+ 

@@ -13,10 +13,12 @@ import org.springframework.stereotype.Component;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.JwtException;
 
 @Component
 public class JwtUtil {
 
+    // Recomiendo setear un secret >= 256 bits (32 bytes) y preferible en base64 o en vault
     @Value("${security.jwt.secret}")
     private String secret;
 
@@ -26,18 +28,17 @@ public class JwtUtil {
     // -----------------------------
     // GENERAR TOKEN CON EL CORREO
     // -----------------------------
-   public String generateToken(UserDetails userDetails) {
-    Date now = new Date();
-    Date expiryDate = new Date(now.getTime() + expirationMs);
+    public String generateToken(UserDetails userDetails) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + expirationMs);
 
-    return Jwts.builder()
-            .subject(userDetails.getUsername())
-            .issuedAt(now)
-            .expiration(expiryDate)
-            .signWith(getSigningKey())
-            .compact();
-}
-
+        return Jwts.builder()
+                .subject(userDetails.getUsername())
+                .issuedAt(now)
+                .expiration(expiryDate)
+                .signWith(getSigningKey())
+                .compact();
+    }
 
     // -----------------------------
     // EXTRAER SUBJECT (correo)
@@ -56,31 +57,40 @@ public class JwtUtil {
     }
 
     // -----------------------------
-    // PARSEAR TOKEN – compatible con JJWT 0.12+
+    // PARSEAR TOKEN 
     // -----------------------------
-    private Claims extractAllClaims(String token) {
-        return Jwts
-                .parser()
+   private Claims extractAllClaims(String token) {
+    try {
+        return Jwts.parser()
                 .verifyWith(getSigningKey())
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
+    } catch (JwtException ex) {
+        // Re-lanzar para que el filtro / entry-point lo capture y responda 401
+        throw ex;
     }
+}
 
     public boolean isTokenValid(String token, String correo) {
-        return extractUsername(token).equalsIgnoreCase(correo)
-                && !isTokenExpired(token);
+        try {
+            String username = extractUsername(token);
+            return username != null
+                    && username.equalsIgnoreCase(correo)
+                    && !isTokenExpired(token);
+        } catch (JwtException | IllegalArgumentException ex) {
+            return false;
+        }
     }
 
     private boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
+        Date exp = extractExpiration(token);
+        return exp.before(new Date());
     }
 
     private SecretKey getSigningKey() {
         byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
         return Keys.hmacShaKeyFor(keyBytes);
     }
-
 }
-
 

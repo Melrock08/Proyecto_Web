@@ -1,11 +1,13 @@
 package com.melrock.proyecto_web.service;
 
 import com.melrock.proyecto_web.dto.EmpresaDTO;
+import com.melrock.proyecto_web.dto.EmpresaRegistroDTO;
 import com.melrock.proyecto_web.model.Empresa;
 import com.melrock.proyecto_web.repository.EmpresaRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,11 +20,41 @@ public class EmpresaService {
     private final EmpresaRepository empresaRepository;
     private final ModelMapper modelMapper;
 
-    // Crear empresa
+    // Crear empresa simple (usa EmpresaDTO) — mantenemos tu método previo
     public EmpresaDTO crearEmpresa(EmpresaDTO dto) {
         Empresa empresa = modelMapper.map(dto, Empresa.class);
         Empresa nuevaEmpresa = empresaRepository.save(empresa);
         return convertirADTO(nuevaEmpresa);
+    }
+
+    // Método nuevo: crear o encontrar por nit/correoContacto
+    @Transactional
+    public Empresa crearOEncontrarEmpresa(EmpresaRegistroDTO dto) {
+        if (dto == null) throw new IllegalArgumentException("Empresa requerida");
+
+        // Buscar por NIT primero
+        if (dto.getNit() != null && !dto.getNit().isBlank()) {
+            Empresa byNit = empresaRepository.findByNit(dto.getNit());
+            if (byNit != null) return byNit;
+        }
+
+        // Buscar por correoContacto luego
+        if (dto.getCorreoContacto() != null && !dto.getCorreoContacto().isBlank()) {
+            Empresa byCorreo = empresaRepository.findByCorreoContacto(dto.getCorreoContacto());
+            if (byCorreo != null) return byCorreo;
+        }
+
+        // No encontrada -> crear
+        Empresa empresa = new Empresa();
+        empresa.setNombreEmpresa(dto.getNombreEmpresa());
+        empresa.setNit(dto.getNit());
+        empresa.setCorreoContacto(dto.getCorreoContacto());
+
+        Empresa saved = empresaRepository.saveAndFlush(empresa);
+        if (saved.getIdEmpresa() == null) {
+            throw new IllegalStateException("Empresa guardada pero no tiene id (revisar DB).");
+        }
+        return saved;
     }
 
     // Listar todas las empresas
@@ -38,7 +70,7 @@ public class EmpresaService {
         return empresaRepository.findById(id).map(this::convertirADTO);
     }
 
-    // Buscar por NIT
+    // Buscar por NIT (mantener compatibilidad)
     public EmpresaDTO buscarPorNit(String nit) {
         Empresa empresa = empresaRepository.findByNit(nit);
         if (empresa == null) throw new RuntimeException("Empresa no encontrada por NIT: " + nit);

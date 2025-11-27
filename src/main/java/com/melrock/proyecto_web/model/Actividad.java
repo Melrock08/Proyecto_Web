@@ -34,3 +34,4 @@ public class Actividad {
     @JoinColumn(name = "id_rol", nullable = false)
     private Rol rol;
 }
+ 

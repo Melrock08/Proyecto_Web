@@ -24,3 +24,4 @@ public class LoginDTO {
         this.contrasena = contrasena;
     }
 }
+ 

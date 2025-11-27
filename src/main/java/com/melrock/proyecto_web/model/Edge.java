@@ -39,3 +39,4 @@ public class Edge {
     @JoinColumn(name = "id_destino_gateway")
     private Gateway destinoGateway;
 }
+ 

@@ -13,3 +13,4 @@ public class RolDTO {
 
     private Long idEmpresa;
 }
+ 

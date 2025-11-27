@@ -9,3 +9,4 @@ import com.melrock.proyecto_web.model.Usuario;
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     Usuario findByCorreo(String correo);
 }
+
